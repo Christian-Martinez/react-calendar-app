@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { uiCloseModal } from '../../actions/ui';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -6,6 +6,8 @@ import moment from 'moment';
 import Swal from 'sweetalert2';
 import Modal from 'react-modal';
 import DateTimePicker from 'react-datetime-picker';
+
+import { eventAddNew, eventClearActiveEvent, eventUpdated } from '../../actions/events';
 
 const customStyles = {
   content: {
@@ -32,6 +34,7 @@ const initEvent = {
 export const CalendarModal = () => {
   const dispatch = useDispatch();
   const { modalOpen } = useSelector((state) => state.ui);
+  const { activeEvent } = useSelector((state) => state.calendar);
 
   const [dateStart, setDateStart] = useState(now.toDate());
   const [dateEnd, setDateEnd] = useState(nowPlus1.toDate());
@@ -39,6 +42,14 @@ export const CalendarModal = () => {
   const [formValues, setFormValues] = useState(initEvent);
 
   const { notes, title, start, end } = formValues;
+
+  useEffect(() => {
+    if (activeEvent) {
+      setFormValues(activeEvent);
+    } else {
+      setFormValues(initEvent);
+    }
+  }, [activeEvent, setFormValues]);
 
   const handleInputChange = ({ target }) => {
     setFormValues({
@@ -48,12 +59,12 @@ export const CalendarModal = () => {
   };
 
   const closeModal = () => {
-    // TODO: cerrar el modal
     dispatch(uiCloseModal());
+    dispatch(eventClearActiveEvent());
+    setFormValues(initEvent);
   };
 
   const handleStartDateChange = (e) => {
-    console.log(typeof e);
     setDateStart(e);
     setFormValues({
       ...formValues,
@@ -83,6 +94,22 @@ export const CalendarModal = () => {
       return setTitleValid(false);
     }
 
+    if (activeEvent) {
+      dispatch(eventUpdated(formValues));
+      console.log(formValues);
+    } else {
+      dispatch(
+        eventAddNew({
+          ...formValues,
+          id: new Date().getTime(),
+          user: {
+            _id: '123',
+            name: 'Fernando',
+          },
+        })
+      );
+    }
+
     setTitleValid(true);
     closeModal();
   };
@@ -97,7 +124,7 @@ export const CalendarModal = () => {
       className='modal'
       overlayClassName='modal-fondo'
     >
-      <h1> {true ? 'Editar evento' : 'Nuevo evento'} </h1>
+      <h1> {activeEvent ? 'Editar evento' : 'Nuevo evento'} </h1>
       <hr />
       <form className='container' onSubmit={handleSubmitForm}>
         <div className='form-group'>
