@@ -1,21 +1,26 @@
 import React, { useState } from 'react';
 import moment from 'moment';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
+import { useDispatch } from 'react-redux';
 
 import { Navbar } from '../ui/NavBar';
+import { uiOpenModal } from '../../actions/ui';
+import { CalendarModal } from './CalendarModal';
 import { CalendarEvent } from './CalendarEvent';
 import { messages } from '../../helpers/calendar-messages-es';
-
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'moment/locale/es';
-import { CalendarModal } from './CalendarModal';
+import { eventSetActive } from '../../actions/events';
 
 moment().locale('es');
 
 const localizer = momentLocalizer(moment);
 
 export const CalendarScreen = () => {
+  const dispatch = useDispatch();
+
   const [lastView, setLastView] = useState(localStorage.getItem('lastView') || 'month');
+
   const myEventsList = [
     {
       title: 'Dia del padre',
@@ -31,12 +36,12 @@ export const CalendarScreen = () => {
 
   const onDoubleClick = (e) => {
     console.log(e);
-    // dispatch( uiOpenModal() );
+    dispatch(uiOpenModal());
   };
 
   const onSelectEvent = (e) => {
     console.log(e);
-    // dispatch( eventSetActive( e ) );
+    dispatch(eventSetActive(e));
   };
 
   const onViewChange = (e) => {
@@ -75,7 +80,7 @@ export const CalendarScreen = () => {
         style={{ height: 500 }}
         messages={messages}
         eventPropGetter={eventStyleGetter}
-        nDoubleClickEvent={onDoubleClick}
+        onDoubleClickEvent={onDoubleClick}
         onSelectEvent={onSelectEvent}
         onView={onViewChange}
         view={lastView}
