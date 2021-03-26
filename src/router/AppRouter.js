@@ -1,16 +1,34 @@
-import React from 'react';
-import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
+import { BrowserRouter as Router, Switch, Redirect } from 'react-router-dom';
 
+import { startChecking } from '../actions/auth';
 import { LoginScreen } from '../components/auth/LoginScreen';
 import { CalendarScreen } from '../components/calendar/CalendarScreen';
+import { PrivateRoute } from './PrivateRoute';
+import { PublicRoute } from './PublicRoute';
 
 export const AppRouter = () => {
+  const dispatch = useDispatch();
+  const { checking, uid } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    //se puso aqui por la proteccion de rutas
+    dispatch(startChecking());
+    /* dispatch esta dentro de la funcion AppRoute y se renderiza,
+    por eso puede ir como parametro del effect */
+  }, [dispatch]);
+
+  if (checking) {
+    return <h5>Espere...</h5>;
+  }
   return (
     <Router>
       <div>
         <Switch>
-          <Route exact path='/auth/login' component={LoginScreen} />
-          <Route exact path='/' component={CalendarScreen} />
+          <PublicRoute exact path='/auth/login' component={LoginScreen} isAuthenticated={!!uid} />
+          <PrivateRoute exact path='/' component={CalendarScreen} isAuthenticated={!!uid} />
 
           <Redirect to='/' />
         </Switch>
